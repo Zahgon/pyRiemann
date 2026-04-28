@@ -203,39 +203,7 @@ class Whitening(TransformerMixin, BaseEstimator):
         -----
         .. versionadded:: 0.7
         """
-        n_matrices, n_channels, _ = X.shape
-        self._n_matrices_cum += n_matrices
-
-        if alpha is None:
-            alpha = n_matrices / self._n_matrices_cum
-        if not 0 <= alpha <= 1:
-            raise ValueError("Parameter alpha must be in [0, 1]")
-        if alpha == 0:
-            return self
-
-        if not hasattr(self, "_mean"):
-            self._mean = gmean(
-                X,
-                metric=self.metric,
-                sample_weight=sample_weight,
-            )
-            self.n_components_ = n_channels
-        elif n_channels != self._mean.shape[-1]:
-            raise ValueError(
-                "X does not have the good number of channels. Should be %d but"
-                " got %d." % (self._mean.shape[-1], n_channels))
-        else:
-            Xm = gmean(
-                X,
-                metric=self.metric,
-                sample_weight=sample_weight,
-            )
-            self._mean = geodesic(self._mean, Xm, alpha, metric=self.metric)
-
-        self._get_eig()
-        self._reduce_and_whiten()
-
-        return self
+        pass
 
     def transform(self, X):
         """Apply whitening spatial filters.

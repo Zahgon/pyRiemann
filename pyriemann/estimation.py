@@ -11,10 +11,7 @@ from .utils.covariance import (covariances, covariances_EP, cross_spectrum,
 
 def _nextpow2(i):
     """Find next power of 2."""
-    n = 1
-    while n < i:
-        n *= 2
-    return n
+    pass
 
 
 class Covariances(TransformerMixin, BaseEstimator):

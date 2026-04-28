@@ -47,7 +47,7 @@ class SpdClassifMixin(ClassifierMixin):
         score : float
             Mean accuracy of clf.predict(X) wrt. y.
         """
-        return super().score(X, y, sample_weight)
+        pass
 
 
 class SpdClustMixin(ClusterMixin):
@@ -68,4 +68,4 @@ class SpdClustMixin(ClusterMixin):
         pred : ndarray of int, shape (n_matrices,)
             Prediction for each matrix according to the closest cluster.
         """
-        return self.fit(X, y).predict(X)
+        pass

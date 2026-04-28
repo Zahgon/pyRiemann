@@ -45,21 +45,7 @@ def _vectorize_nd(n_axes=2):
     """
     def decorator(func):
         @wraps(func)
-        def wrapper(X, *args, **kwargs):
-            batch_shape = X.shape[:-n_axes]
-            if len(batch_shape) == 0:
-                return func(X, *args, **kwargs)
-            n_batch = np.prod(batch_shape, dtype=int)
-            core_shape = X.shape[-n_axes:]
-            X_flat = X.reshape(n_batch, *core_shape)
-            X_new = []
-            for b in range(n_batch):
-                X_new.append(
-                    np.atleast_2d(func(X_flat[b], *args, **kwargs))
-                )
-            X_new = np.asarray(X_new)
-            return X_new.reshape(*batch_shape, *X_new.shape[1:])
-        return wrapper
+        pass
     return decorator
 
 
@@ -141,7 +127,7 @@ def invsqrtm(C):
     D : ndarray, shape (..., n, n)
         Matrix inverse square root of C.
     """
-    def isqrt(x): return 1. / np.sqrt(x)
+    pass
     return _matrix_operator(C, isqrt)
 
 
@@ -195,7 +181,7 @@ def powm(C, alpha):
     D : ndarray, shape (..., n, n)
         Matrix power of C.
     """
-    def power(x): return x**alpha
+    pass
     return _matrix_operator(C, power)
 
 

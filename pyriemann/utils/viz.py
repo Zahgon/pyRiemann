@@ -235,13 +235,7 @@ def plot_waveforms(X, display, *, times=None, color="gray", alpha=0.5,
 
 def _add_alpha(colors, alphas):
     """Add alphas to RGB channels"""
-    try:
-        from matplotlib.colors import to_rgb
-    except ImportError:
-        raise ImportError("Install matplotlib to add alpha")
-
-    cols = [to_rgb(c) for c in colors]
-    return [(c[0], c[1], c[2], a) for c, a in zip(cols, alphas[-len(cols):])]
+    pass
 
 
 def plot_cov_ellipse(ax, X, n_std=2.5, **kwds):
@@ -271,21 +265,7 @@ def plot_cov_ellipse(ax, X, n_std=2.5, **kwds):
     ----------
     .. [1] https://matplotlib.org/stable/gallery/statistics/confidence_ellipse.html
     """  # noqa
-    if X.shape != (2, 2):
-        raise ValueError("Input X must be a 2x2 covariance matrix")
-
-    pearson = X[0, 1] / np.sqrt(X[0, 0] * X[1, 1])
-    ell_radius_x = np.sqrt(1 + pearson)
-    ell_radius_y = np.sqrt(1 - pearson)
-    ellipse = Ellipse((0, 0), width=ell_radius_x * 2, height=ell_radius_y * 2,
-                      facecolor='none', **kwds)
-    scale_x = np.sqrt(X[0, 0]) * n_std
-    scale_y = np.sqrt(X[1, 1]) * n_std
-    transf = transforms.Affine2D().rotate_deg(45).scale(scale_x, scale_y)
-    ellipse.set_transform(transf + ax.transData)
-    ax.add_patch(ellipse)
-
-    return ax
+    pass
 
 
 def plot_bihist(X, y, n_bins=10, title="Histogram"):
@@ -311,38 +291,7 @@ def plot_bihist(X, y, n_bins=10, title="Histogram"):
     -----
     .. versionadded:: 0.6
     """
-    if X.ndim != 2:
-        raise ValueError("Input X has not 2 dimensions")
-    if X.shape[1] != 2:
-        raise ValueError("Input X has not 2 classes")
-
-    classes = np.unique(y)
-    if classes.shape[0] != 2:
-        raise ValueError("Input y has not 2 labels")
-
-    X = X / np.sum(X, axis=1, keepdims=True)
-    X0 = X[y == classes[0], 0]
-    X1 = 1 - X[y == classes[1], 1]
-
-    def get_bins(X, n_bins, target=0.5):
-        """Estimate bins with the garantee to have target value in bin edges"""
-        bins = np.histogram_bin_edges(X, bins=n_bins)
-        idx = (np.abs(bins - target)).argmin()
-        bins[idx] = target
-        return bins
-
-    fig, ax = plt.subplots(figsize=(6, 5))
-    ax.axvline(x=0.5, c="k", linestyle=":")
-    ax.hist(X0, bins=get_bins(X0, n_bins), label=classes[0], alpha=0.5)
-    ax.hist(X1, bins=get_bins(X1, n_bins), label=classes[1], alpha=0.5)
-
-    (Xmin, Xmax) = ax.get_xlim()
-    Xm = min(Xmin, 1 - Xmax)
-    ax.set_xlim(Xm, 1 - Xm)
-    ax.set(xlabel="Rescaled predictions", ylabel="Frequency", title=title)
-    ax.legend(title="Classes", loc="upper left")
-
-    return fig
+    pass
 
 
 def plot_biscatter(X, y):
@@ -364,29 +313,4 @@ def plot_biscatter(X, y):
     -----
     .. versionadded:: 0.6
     """
-
-    if X.ndim != 2:
-        raise ValueError("Input X has not 2 dimensions")
-    if X.shape[1] != 2:
-        raise ValueError("Input X has not 2 classes")
-
-    classes = np.unique(y)
-    if classes.shape[0] != 2:
-        raise ValueError("Input y has not 2 labels")
-
-    X0 = X[y == classes[0]]
-    X1 = X[y == classes[1]]
-
-    fig, ax = plt.subplots(figsize=(7, 7))
-    ax.scatter(X0[:, 0], X0[:, 1], label=classes[0], alpha=1)
-    ax.scatter(X1[:, 0], X1[:, 1], label=classes[1], alpha=0.5)
-    ax.legend(title="Classes", loc="upper left")
-
-    (Xmin, Xmax) = ax.get_xlim()
-    (Ymin, Ymax) = ax.get_ylim()
-    XYmin, XYmax = min(Xmin, Ymin), max(Xmax, Ymax)
-    ax.plot([XYmin, XYmax], [XYmin, XYmax], c="k", linestyle=":")
-    ax.set_xlim([XYmin, XYmax])
-    ax.set_ylim([XYmin, XYmax])
-
-    return fig
+    pass

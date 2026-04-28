@@ -42,54 +42,41 @@ def _complex_estimator(func):
     """
     @wraps(func)
     def wrapper(X, **kwds):
-        iscomplex = np.iscomplexobj(X)
-        if iscomplex:
-            n_channels = X.shape[-2]
-            X = np.concatenate((X.real, X.imag), axis=-2)
-        cov = func(X, **kwds)
-        if iscomplex:
-            cov = cov[..., :n_channels, :n_channels] \
-                + cov[..., n_channels:, n_channels:] \
-                + 1j * (cov[..., n_channels:, :n_channels]
-                        - cov[..., :n_channels, n_channels:])
-        return cov
+        pass
     return wrapper
 
 
 @_complex_estimator
 def _lwf(X, **kwds):
     """Wrapper for sklearn ledoit wolf covariance estimator"""
-    C, _ = ledoit_wolf(X.T, **kwds)
-    return C
+    pass
 
 
 @_complex_estimator
 def _mcd(X, **kwds):
     """Wrapper for sklearn mcd covariance estimator"""
-    _, C, _, _ = fast_mcd(X.T, **kwds)
-    return C
+    pass
 
 
 @_complex_estimator
 def _oas(X, **kwds):
     """Wrapper for sklearn oas covariance estimator"""
-    C, _ = oas(X.T, **kwds)
-    return C
+    pass
 
 
 def _hub(X, **kwds):
     """Wrapper for Huber's M-estimator"""
-    return covariance_mest(X, "hub", **kwds)
+    pass
 
 
 def _stu(X, **kwds):
     """Wrapper for Student-t's M-estimator"""
-    return covariance_mest(X, "stu", **kwds)
+    pass
 
 
 def _tyl(X, **kwds):
     """Wrapper for Tyler's M-estimator"""
-    return covariance_mest(X, "tyl", **kwds)
+    pass
 
 
 def covariance_mest(X, m_estimator, *, init=None, tol=10e-3, n_iter_max=50,
@@ -174,55 +161,7 @@ def covariance_mest(X, m_estimator, *, init=None, tol=10e-3, n_iter_max=50,
         <https://projecteuclid.org/journals/annals-of-statistics/volume-15/issue-1/A-Distribution-Free-M-Estimator-of-Multivariate-Scatter/10.1214/aos/1176350263.full>`_
         D.E. Tyler. The Annals of Statistics, 1987.
     """  # noqa
-    n_channels, n_times = X.shape[-2], X.shape[-1]
-
-    if m_estimator == "hub":
-        if not 0 < q <= 1:
-            raise ValueError(f"Value q must be included in (0, 1] (Got {q})")
-
-        def weight_func(x):  # Example 1, Section V-C in [1]
-            c2 = chi2.ppf(q, n_channels) / 2
-            b = chi2.cdf(2 * c2, n_channels + 1) + c2 * (1 - q) / n_channels
-            return np.minimum(1, c2 / x) / b
-    elif m_estimator == "stu":
-        if nu <= 0:
-            raise ValueError(f"Value nu must be strictly positive (Got {nu})")
-
-        def weight_func(x):  # Eq.(42) in [1]
-            return (2 * n_channels + nu) / (nu + 2 * x)
-    elif m_estimator == "tyl":
-        def weight_func(x):  # Example 2, Section V-C in [1]
-            return n_channels / x
-    else:
-        raise ValueError(f"Unsupported m_estimator: {m_estimator}")
-
-    if not assume_centered:
-        X = X - np.mean(X, axis=-1, keepdims=True)
-    if init is None:
-        cov = X @ ctranspose(X) / n_times
-    else:
-        cov = init
-
-    for _ in range(n_iter_max):
-        dist2 = distance_mahalanobis(X, cov, squared=True)
-
-        Xw = np.sqrt(weight_func(dist2)) * X
-        cov_new = Xw @ ctranspose(Xw) / n_times
-
-        norm_delta = np.linalg.norm(cov_new - cov, ord="fro")
-        norm_cov = np.linalg.norm(cov, ord="fro")
-        cov = cov_new
-        if (norm_delta / norm_cov) <= tol:
-            break
-    else:
-        warnings.warn("Convergence not reached", stacklevel=2)
-
-    if m_estimator == "tyl":
-        cov = normalize(cov, norm)
-        if norm == "trace":
-            cov *= n_channels
-
-    return cov
+    pass
 
 
 @_complex_estimator
@@ -264,41 +203,7 @@ def covariance_sch(X):
         J. Schafer, and K. Strimmer. Statistical Applications in Genetics and
         Molecular Biology, Volume 4, Issue 1, 2005.
     """
-    n_times = X.shape[-1]
-    X_c = X - X.mean(axis=-1, keepdims=True)
-    C_scm = X_c @ np.swapaxes(X_c, -2, -1) / n_times
-
-    # Compute optimal gamma, the weighting between SCM and shrinkage estimator
-    std = X.std(axis=-1)
-    std_outer = std[..., :, np.newaxis] * std[..., np.newaxis, :]
-    R = (n_times / ((n_times - 1.) * std_outer)) * C_scm
-
-    X_c2 = X_c ** 2
-    var_R = X_c2 @ np.swapaxes(X_c2, -2, -1) - n_times * C_scm ** 2
-    var = X.var(axis=-1)
-    var_outer = var[..., :, np.newaxis] * var[..., np.newaxis, :]
-    var_R *= n_times / ((n_times - 1) ** 3 * var_outer)
-
-    # Zero out diagonal
-    diag_idx = np.arange(R.shape[-1])
-    R[..., diag_idx, diag_idx] = 0
-    var_R[..., diag_idx, diag_idx] = 0
-    R2_sum = np.sum(R ** 2, axis=(-2, -1))
-    gamma = np.clip(
-        np.where(R2_sum == 0, 0.0,
-                 np.sum(var_R, axis=(-2, -1)) / R2_sum),
-        0, 1,
-    )
-    gamma = np.expand_dims(gamma, axis=(-2, -1))
-
-    sigma = (1. - gamma) * (n_times / (n_times - 1.)) * C_scm
-
-    # diagonal matrix from C_scm diagonal
-    diag_C = np.diagonal(C_scm, axis1=-2, axis2=-1)
-    shrinkage_diag = np.zeros_like(C_scm)
-    shrinkage_diag[..., diag_idx, diag_idx] = diag_C
-    shrinkage = gamma * (n_times / (n_times - 1.)) * shrinkage_diag
-    return sigma + shrinkage
+    pass
 
 
 def covariance_scm(X, *, assume_centered=False, weights=None):

@@ -194,46 +194,7 @@ def _slice_one_sample(ptarget, x0, w, rs):
     sample : ndarray, shape (n_dim,)
         Sample from the target pdf.
     """
-    xt = np.copy(x0)
-    n_dim = len(x0)
-
-    for i in range(n_dim):
-
-        ei = np.zeros(n_dim)
-        ei[i] = 1
-
-        # step 1 : evaluate ptarget(xt)
-        Px = ptarget(xt)
-
-        # step 2 : draw vertical coordinate uprime ~ U(0, ptarget(xt))
-        uprime_i = Px * rs.rand()
-
-        # step 3 : create a horizontal interval (xl_i, xr_i) enclosing xt_i
-        r = rs.rand()
-        xl_i = xt[i] - r * w
-        xr_i = xt[i] + (1-r) * w
-        while ptarget(xt + (xl_i - xt[i]) * ei) > uprime_i:
-            xl_i = xl_i - w
-        while ptarget(xt + (xr_i - xt[i]) * ei) > uprime_i:
-            xr_i = xr_i + w
-
-        # step 4 : loop
-        while True:
-            xprime_i = xl_i + (xr_i - xl_i) * rs.rand()
-            Px = ptarget(xt + (xprime_i - xt[i]) * ei)
-            if Px > uprime_i:
-                break
-            else:
-                if xprime_i > xt[i]:
-                    xr_i = xprime_i
-                else:
-                    xl_i = xprime_i
-
-        # store coordinate i of new sample
-        xt = np.copy(xt)
-        xt[i] = xprime_i
-
-    return xt
+    pass
 
 
 def _slice_sampling(ptarget, n_samples, x0, n_burnin=20, thin=10,
@@ -342,7 +303,7 @@ def _sample_parameter_r(n_samples, n_dim, sigma,
         positive definite matrices
         <https://hal.archives-ouvertes.fr/hal-01710191>`_
         S. Said, L. Bombrun, Y. Berthoumieu, and J. Manton. IEEE Trans Inf
-        Theory, vol. 63, pp. 2153–2170, 2017.
+        Theory, vol. 63, pp. 2153â€“2170, 2017.
     """
     if sampling_method not in ["slice", "rejection", "auto"]:
         raise ValueError(f"Unknown sampling method {sampling_method}, "
@@ -444,7 +405,7 @@ def _sample_gaussian_spd_centered(n_matrices, n_dim, sigma, random_state=None,
         positive definite matrices
         <https://hal.archives-ouvertes.fr/hal-01710191>`_
         S. Said, L. Bombrun, Y. Berthoumieu, and J. Manton. IEEE Trans Inf
-        Theory, vol. 63, pp. 2153–2170, 2017.
+        Theory, vol. 63, pp. 2153â€“2170, 2017.
     """
 
     samples_r = _sample_parameter_r(
@@ -529,7 +490,7 @@ def sample_gaussian_spd(n_matrices, mean, sigma, random_state=None,
         positive definite matrices
         <https://hal.archives-ouvertes.fr/hal-01710191>`_
         S. Said, L. Bombrun, Y. Berthoumieu, and J. Manton. IEEE Trans Inf
-        Theory, vol. 63, pp. 2153–2170, 2017.
+        Theory, vol. 63, pp. 2153â€“2170, 2017.
     .. [2] `Wrapped gaussian on the manifold of symmetric positive
         definite matrices
         <https://openreview.net/pdf?id=EhStXG4dCS>`_
@@ -625,7 +586,7 @@ class RandomOverSampler(BaseEstimator):
     ----------
     .. [1] `Data augmentation in Riemannian space for brain-computer interfaces
         <https://hal.science/hal-01351990/>`_
-        E. Kalunga, S. Chevallier and Q. Barthélemy.
+        E. Kalunga, S. Chevallier and Q. BarthÃ©lemy.
         ICML Workshop on Statistics, Machine Learning and Neuroscience, 2015.
     """
 
@@ -679,67 +640,11 @@ class RandomOverSampler(BaseEstimator):
         y_resampled : ndarray, shape (n_matrices_new,)
             Labels for each resampled matrix.
         """
-        self.fit(X, y)
-
-        _, self._channels, _ = X.shape
-        output_counts = self._check_sampling_strategy(y)
-
-        res = Parallel(n_jobs=self.n_jobs)(
-            delayed(self._resample)(X[y == c], c, n_mats)
-            for c, n_mats in output_counts.items()
-        )
-
-        X_resampled_, y_resampled_ = zip(*res)
-        X_resampled = np.concatenate((X,) + X_resampled_, axis=0)
-        y_resampled = np.concatenate((y,) + y_resampled_, axis=0)
-        return X_resampled, y_resampled
+        pass
 
     def _check_sampling_strategy(self, y):
 
-        classes, counts = np.unique(y, return_counts=True)
-        input_counts = dict(zip(classes, counts))
-        n_mats_majority = max(input_counts.values())
-
-        if self.sampling_strategy == "minority":
-            class_minority = min(input_counts, key=input_counts.get)
-            return {
-                key: n_mats_majority - value
-                for (key, value) in input_counts.items()
-                if key == class_minority
-            }
-
-        if self.sampling_strategy == "not minority":
-            class_minority = min(input_counts, key=input_counts.get)
-            return {
-                key: n_mats_majority - value
-                for (key, value) in input_counts.items()
-                if key != class_minority
-            }
-
-        if self.sampling_strategy in ["not majority", "auto"]:
-            class_majority = max(input_counts, key=input_counts.get)
-            return {
-                key: n_mats_majority - value
-                for (key, value) in input_counts.items()
-                if key != class_majority
-            }
-
-        if self.sampling_strategy == "all":
-            return {
-                key: n_mats_majority - value
-                for (key, value) in input_counts.items()
-            }
-
-        raise ValueError(
-            f"Sampling strategy {self.sampling_strategy} is not supported."
-        )
+        pass
 
     def _resample(self, X, y, n_mats):
-        X_resampled = np.empty((n_mats, self._channels, self._channels))
-
-        for n in range(n_mats):
-            i, j = np.random.choice(len(X), size=2, replace=False)
-            alpha = self._rs.uniform(0, 1)
-            X_resampled[n] = geodesic(X[i], X[j], alpha, metric=self.metric)
-
-        return X_resampled, np.full(n_mats, y)
+        pass

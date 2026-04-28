@@ -349,14 +349,12 @@ class KmeansPerClassTransform(SpdTransfMixin, BaseEstimator):
 
 @np.vectorize
 def kernel_normal(x):
-    return np.exp(- x ** 2)
+    pass
 
 
 @np.vectorize
 def kernel_uniform(x):
-    if np.abs(x) <= 1:
-        return 1
-    return 0
+    pass
 
 
 ker_clust_functions = {
@@ -481,18 +479,7 @@ class MeanShift(SpdClustMixin, BaseEstimator):
         return bandwidth
 
     def _seek_mode(self, X, mean):
-        for _ in range(self.max_iter):
-            T = log_map(X, mean, metric=self._metric_map)
-            dist2 = distance(X, mean, metric=self._metric_dist, squared=True)
-            weights = self._kernel_fun(dist2[:, 0] / self._bandwidth2)
-            meanshift = np.einsum("a,abc->bc", weights, T) / np.sum(weights)
-            mean = exp_map(meanshift, mean, metric=self._metric_map)
-            if np.linalg.norm(meanshift) <= self.tol:
-                break
-        else:
-            warnings.warn("Convergence not reached")
-
-        return mean
+        pass
 
     def _fuse_mode(self, in_modes):
         out_modes = in_modes.copy()
@@ -724,11 +711,11 @@ class GaussianMixture(SpdClustMixin, BaseEstimator):
 
     @property
     def means_(self):
-        return np.stack([component.mu for component in self._components])
+        pass
 
     @property
     def covariances_(self):
-        return np.stack([component.sigma for component in self._components])
+        pass
 
     def _get_wlik(self, X, use_pi=True):
         """Compute weighted likelihoods.
@@ -893,8 +880,7 @@ class GaussianMixture(SpdClustMixin, BaseEstimator):
         score : float
             Log-likelihood of matrices under the Gaussian mixture model.
         """
-        lik = np.sum(self._get_wlik(X), axis=1)
-        return np.mean(self._log(lik))
+        pass
 
     def sample(self, n_matrices=1):
         """Generate random matrices from the fitted Gaussian distribution.
@@ -925,21 +911,7 @@ class GaussianMixture(SpdClustMixin, BaseEstimator):
             <https://openreview.net/pdf?id=EhStXG4dCS>`_
             T. de Surrel, F. Lotte, S. Chevallier, and F. Yger. ICML, 2025
         """  # noqa
-        y = self.random_state.randint(self.n_components, size=(n_matrices,))
-
-        means, covariances = self.means_, self.covariances_
-        n_channels = means.shape[-1]
-
-        X = np.zeros((n_matrices, means.shape[-1], n_channels))
-        for i in np.unique(y):
-            X[y == i] = sample_gaussian_spd(
-                np.count_nonzero(y == i),
-                mean=means[i],
-                sigma=covariances[i],
-                random_state=self.random_state
-            )
-
-        return X, y
+        pass
 
 
 ###############################################################################
@@ -994,7 +966,7 @@ class Potato(TransformerMixin, SpdClassifMixin, BaseEstimator):
     .. [2] `The Riemannian Potato Field: A Tool for Online Signal Quality Index
         of EEG
         <https://hal.archives-ouvertes.fr/hal-02015909>`_
-        Q. Barthélemy, L. Mayaud, D. Ojeda, and M. Congedo. IEEE Transactions
+        Q. BarthÃ©lemy, L. Mayaud, D. Ojeda, and M. Congedo. IEEE Transactions
         on Neural Systems and Rehabilitation Engineering, IEEE Institute of
         Electrical and Electronics Engineers, 2019, 27 (2), pp.244-255
     """
@@ -1097,45 +1069,7 @@ class Potato(TransformerMixin, SpdClassifMixin, BaseEstimator):
         -----
         .. versionadded:: 0.3
         """
-        if not hasattr(self, "_mdm"):
-            raise ValueError(
-                "partial_fit can be called only on an already fitted potato."
-            )
-
-        n_matrices, n_channels, _ = X.shape
-        if n_channels != self._mdm.covmeans_[0].shape[0]:
-            raise ValueError(
-                "X does not have the good number of channels. Should be %d but"
-                " got %d." % (self._mdm.covmeans_[0].shape[0], n_channels)
-            )
-
-        y = self._check_labels(X, y)
-
-        if sample_weight is None:
-            sample_weight = np.ones(X.shape[0])
-
-        if not 0 <= alpha <= 1:
-            raise ValueError("Parameter alpha must be in [0, 1]")
-        if alpha == 0:
-            return self
-
-        Xm = gmean(
-            X[y == self.pos_label],
-            metric=self._metric_mean,
-            sample_weight=sample_weight[y == self.pos_label],
-        )
-        self._mdm.covmeans_[0] = geodesic(
-            self._mdm.covmeans_[0], Xm, alpha, metric=self._metric_mean
-        )
-
-        d = np.squeeze(np.log(self._mdm.transform(Xm[np.newaxis, ...])))
-        self._mean = (1 - alpha) * self._mean + alpha * d
-        self._std = np.sqrt(
-            (1 - alpha) * self._std**2 + alpha * (d - self._mean)**2
-        )
-
-        self.covmean_ = self._mdm.covmeans_[0]
-        return self
+        pass
 
     def transform(self, X):
         """Return the standardized log-distance to the centroid.
@@ -1323,12 +1257,12 @@ class PotatoField(TransformerMixin, SpdClassifMixin, BaseEstimator):
     .. [1] `The Riemannian Potato Field: A Tool for Online Signal Quality Index
         of EEG
         <https://hal.archives-ouvertes.fr/hal-02015909>`_
-        Q. Barthélemy, L. Mayaud, D. Ojeda, and M. Congedo. IEEE
+        Q. BarthÃ©lemy, L. Mayaud, D. Ojeda, and M. Congedo. IEEE
         Transactions on Neural Systems and Rehabilitation Engineering, 2019
     .. [2] `Improved Riemannian potato field: an Automatic Artifact Rejection
         Method for EEG
         <https://arxiv.org/pdf/2509.09264>`_
-        D. Hajhassani, Q. Barthélemy, J. Mattout & M. Congedo.
+        D. Hajhassani, Q. BarthÃ©lemy, J. Mattout & M. Congedo.
         Biomedical Signal Processing and Control, 2026
     """
 
@@ -1443,22 +1377,7 @@ class PotatoField(TransformerMixin, SpdClassifMixin, BaseEstimator):
         self : PotatoField instance
             The PotatoField instance.
         """
-        if not hasattr(self, "_potatoes"):
-            raise ValueError("partial_fit can be called only on an already "
-                             "fitted potato field.")
-
-        self._check_length(X)
-        n_matrices = X[0].shape[0]
-
-        for i in range(self.n_potatoes):
-            _check_n_matrices(X[i], n_matrices)
-            self._potatoes[i].partial_fit(
-                X[i],
-                y,
-                sample_weight=sample_weight,
-                alpha=alpha,
-            )
-        return self
+        pass
 
     def transform(self, X):
         """Return the standardized log-distances to the centroids.

@@ -826,22 +826,4 @@ class AJDC(BaseEstimator):
         src_var : ndarray, shape (n_matrices, n_sources)
             Explained variance for each source.
         """
-        if X.ndim != 3:
-            raise ValueError("X must have 3 dimensions (Got %d)" % X.ndim)
-        if X.shape[1] != self.n_channels_:
-            raise ValueError(
-                "X does not have the good number of channels. Should be %d but"
-                " got %d." % (self.n_channels_, X.shape[1])
-            )
-
-        cov = est.Covariances().transform(X)
-
-        src_var = np.zeros((X.shape[0], self.n_sources_))
-        for s in range(self.n_sources_):
-            src_var[:, s] = np.trace(
-                self.backward_filters_[:, s] * self.forward_filters_[s].T * cov
-                * self.forward_filters_[s] * self.backward_filters_[:, s].T,
-                axis1=-2,
-                axis2=-1,
-            )
-        return src_var
+        pass

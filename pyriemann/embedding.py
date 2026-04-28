@@ -598,16 +598,7 @@ def _compute_jointprob_student(X, metric):
     Dsq : ndarray, shape (n_matrices, n_matrices)
         Squared distances between matrices.
     """
-    n_matrices, _, _ = X.shape
-    Dsq = pairwise_distance(X, metric=metric, squared=True)
-
-    denominator = np.sum(
-        [np.sum([np.delete(1 / (1 + Dsq[k, :]), k)])
-         for k in range(n_matrices)]
-    )
-    P = 1 / (1 + Dsq) / denominator
-    np.fill_diagonal(P, 0)
-    return P, Dsq
+    pass
 
 
 def _check_dimensions(X, Y=None, n_components=None, n_neighbors=None):

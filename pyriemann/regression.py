@@ -264,5 +264,4 @@ class KNearestNeighborRegressor(RegressorMixin, MDM):
         -----
         .. versionadded:: 0.4
         """
-        y_pred = self.predict(X)
-        return r2_score(y, y_pred)
+        pass

@@ -20,9 +20,7 @@ from .utils.utils import check_metric, check_param_in_func
 
 
 def _mode_1d(X):
-    vals, counts = np.unique(X, return_counts=True)
-    mode = vals[counts.argmax()]
-    return mode
+    pass
 
 
 def _mode_2d(X, axis=1):
@@ -1072,61 +1070,10 @@ class NearestConvexHull(SpdClassifMixin, SpdTransfMixin, BaseEstimator):
             set of SPD matrices A, defined as the distance between b and
             the matrix of the convex hull closest to matrix b.
         """
-        n_matrices_A, _, _ = A.shape
-        n_matrices_B, _, _ = B.shape
-
-        if self.metric == "euclid":
-            A_, B_ = A, B
-        elif self.metric == "logeuclid":
-            A_, B_ = logm(A), logm(B)
-
-        D1 = np.zeros((n_matrices_A, n_matrices_A))
-        for i in range(n_matrices_A):
-            for j in range(i, n_matrices_A):
-                D1[i, j] = D1[j, i] = np.trace(A_[i] @ A_[j])
-
-        D2 = np.zeros((n_matrices_B, n_matrices_A))
-        for i in range(n_matrices_B):
-            for j in range(n_matrices_A):
-                D2[i, j] = np.trace(B_[i] @ A_[j])
-
-        dist = np.zeros((n_matrices_B, 1))
-        for i in range(n_matrices_B):
-            weights = self._find_weights_to_convex_hull(D1, D2[i])
-            H = gmean(A, metric=self.metric, sample_weight=weights)
-            dist[i] = distance(H, B[i], metric=self.metric)
-
-        return dist
+        pass
 
     def _find_weights_to_convex_hull(self, D1, d2):
-        n_matrices = D1.shape[0]
-
-        w0 = np.full(n_matrices, 1.0 / n_matrices)
-
-        def fun(w):
-            return w @ D1 @ w - 2.0 * d2 @ w
-
-        def jac(w):
-            return 2.0 * D1 @ w - 2.0 * d2
-
-        cons = [{
-            "type": "eq",
-            "fun": lambda w: np.sum(w) - 1.0,
-            "jac": lambda w: np.ones_like(w)
-        }]
-
-        res = minimize(
-            fun,
-            w0,
-            method=self.method,
-            jac=jac,
-            bounds=[(0.0, None)] * n_matrices,
-            constraints=cons,
-            options={"maxiter": 50, "ftol": 1e-6, "disp": False}
-        )
-        weights = np.clip(res.x, 0.0, 1.0)
-
-        return weights
+        pass
 
     def predict(self, X):
         """Get the predictions.
@@ -1252,7 +1199,7 @@ def class_distinctiveness(X, y, exponent=1, metric="riemann",
 
     References
     ----------
-    .. [1] `Defining and quantifying users’ mental imagery-based
+    .. [1] `Defining and quantifying usersâ€™ mental imagery-based
        BCI skills: a first step
        <https://hal.archives-ouvertes.fr/hal-01846434/>`_
        F. Lotte, and C. Jeunet. Journal of neural engineering,

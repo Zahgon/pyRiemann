@@ -165,4 +165,4 @@ class TLSplitter():
         n_splits : int
             Number of splitting iterations in the cross-validator.
         """
-        return self.cv.n_splits
+        pass

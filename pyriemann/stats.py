@@ -13,23 +13,12 @@ from .classification import MDM
 
 def multiset_perm_number(y):
     """return the number of unique permutation in a multiset."""
-    pr = 1
-    for i in np.unique(y):
-        pr *= math.factorial(np.sum(y == i))
-    return math.factorial(len(y)) / pr
+    pass
 
 
 def unique_permutations(elements):
     """Return the list of unique permutations."""
-    if len(elements) == 1:
-        yield (elements[0], )
-    else:
-        unique_elements = set(elements)
-        for first_element in unique_elements:
-            remaining_elements = list(elements)
-            remaining_elements.remove(first_element)
-            for sub_permutation in unique_permutations(remaining_elements):
-                yield (first_element, ) + sub_permutation
+    pass
 
 
 class BasePermutation():
@@ -51,61 +40,19 @@ class BasePermutation():
         verbose : bool, default=True
             If true, print progress.
         """
-        Npe = multiset_perm_number(y)
-        self.scores_ = np.zeros(np.min([self.n_perms, int(Npe)]))
-
-        # initial fit. This is usefull for transform data or for estimating
-        # parameter that does not change across permutation, like the mean of
-        # all data, the pairwise distance matrix, etc.
-        X = self._initial_transform(X)
-
-        # get the non permuted score
-        self.scores_[0] = self.score(X, y, groups=groups)
-
-        if Npe <= self.n_perms:
-            print("Warning, number of unique permutations : %d" % Npe)
-            perms = unique_permutations(y)
-            ii = 0
-            for perm in perms:
-                if not np.array_equal(perm, y):
-                    self.scores_[ii + 1] = self.score(X, perm, groups=groups)
-                    ii += 1
-                    if verbose:
-                        self._print_progress(ii)
-
-        else:
-            rs = np.random.RandomState(self.random_state)
-            for ii in range(self.n_perms - 1):
-                perm = self._shuffle(y, groups, rs)
-                self.scores_[ii + 1] = self.score(X, perm, groups=groups)
-                if verbose:
-                    self._print_progress(ii)
-        if verbose:
-            print("")
-        self.p_value_ = (self.scores_[0] <= self.scores_).mean()
-
-        return self.p_value_, self.scores_
+        pass
 
     def _print_progress(self, ii):
         """Print permutation progress"""
-        sys.stdout.write("Performing permutations : [%.1f%%]\r" %
-                         ((100. * (ii + 1)) / self.n_perms))
-        sys.stdout.flush()
+        pass
 
     def _initial_transform(self, X):
         """Initial transformation. By default return X."""
-        return X
+        pass
 
     def _shuffle(self, y, groups, rs):
         """Return a shuffled copy of y eventually shuffle among same groups."""
-        if groups is None:
-            indices = rs.permutation(len(y))
-        else:
-            indices = np.arange(len(groups))
-            for group in np.unique(groups):
-                this_mask = (groups == group)
-                indices[this_mask] = rs.permutation(indices[this_mask])
-        return y[indices]
+        pass
 
     def plot(self, nbins=10, range=None, axes=None):
         """Plot results of the permutation test.
@@ -219,16 +166,7 @@ class PermutationModel(BasePermutation):
         groups : array-like, default=None
             Group labels used while splitting the dataset into train/test set
         """
-        score = cross_val_score(
-            self.model,
-            X,
-            y,
-            cv=self.cv,
-            n_jobs=self.n_jobs,
-            scoring=self.scoring,
-            groups=groups,
-        )
-        return score.mean()
+        pass
 
 
 class PermutationDistance(BasePermutation):
@@ -329,109 +267,24 @@ class PermutationDistance(BasePermutation):
         groups : array-like, default=None
             Group labels used while splitting the dataset into train/test set
         """
-        if self.estimator:
-            X = self.estimator.fit_transform(X, y)
-            X = self.__init_transform(X)
-
-        if self.mode == "ttest":
-            return self._score_ttest(X, y)
-        elif self.mode == "ftest":
-            return self._score_ftest(X, y)
-        elif self.mode == "pairwise":
-            return self._score_pairwise(X, y)
+        pass
 
     def _initial_transform(self, X):
         """Initial transform"""
-        # if an estimator provided, then transform w
-        if self.estimator:
-            return X
-
-        return self.__init_transform(X)
+        pass
 
     def __init_transform(self, X):
         """Init tr"""
-        self.mdm = MDM(metric=self.metric, n_jobs=self.n_jobs)
-        self.mdm._metric_mean, self.mdm._metric_dist = \
-            check_metric(self.metric)
-        if self.mode == "ftest":
-            self.global_mean = gmean(X, metric=self.mdm._metric_mean)
-        elif self.mode == "pairwise":
-            X = pairwise_distance(
-                X, metric=self.mdm._metric_dist, squared=True
-            )
-        return X
+        pass
 
     def _score_ftest(self, X, y):
         """Get the score"""
-        mdm = self.mdm.fit(X, y)
-        covmeans = np.array(mdm.covmeans_)
-
-        # estimates between classes variability
-        n_classes = len(covmeans)
-        between = 0
-        for ix, classe in enumerate(mdm.classes_):
-            di = distance(
-                covmeans[ix],
-                self.global_mean,
-                metric=mdm._metric_dist,
-                squared=True,
-            )
-            between += np.sum(y == classe) * di
-        between /= (n_classes - 1)
-
-        # estimates within class variability
-        within = 0
-        for ix, classe in enumerate(mdm.classes_):
-            within += distance(
-                X[y == classe],
-                covmeans[ix],
-                metric=mdm._metric_dist,
-                squared=True,
-            ).sum()
-        within /= (len(y) - n_classes)
-
-        score = between / within
-        return score
+        pass
 
     def _score_ttest(self, X, y):
         """Get the score"""
-        mdm = self.mdm.fit(X, y)
-        covmeans = np.array(mdm.covmeans_)
-
-        # estimates distances between means
-        n_classes = len(covmeans)
-        pairs = pairwise_distance(covmeans, metric=mdm._metric_dist)
-        mean_dist = np.triu(pairs).sum()
-        mean_dist /= (n_classes * (n_classes - 1)) / 2.0
-
-        dist = 0
-        for ix, classe in enumerate(mdm.classes_):
-            di = distance(
-                X[y == classe],
-                covmeans[ix],
-                metric=mdm._metric_dist,
-                squared=True,
-            ).mean()
-            dist += (di / np.sum(y == classe))
-        score = mean_dist / np.sqrt(dist)
-        return score
+        pass
 
     def _score_pairwise(self, X, y):
         """Score for the pairwise distance test."""
-        classes = np.unique(y)
-        n_classes = len(classes)
-        n_samples = len(y)
-        total_ss = X.sum() / (2 * n_samples)
-        pattern = np.zeros((n_samples, n_samples))
-        for classe in classes:
-            ix = (y == classe)
-            pattern += (np.outer(ix, ix) / ix.sum())
-
-        within_ss = (X * pattern).sum() / 2
-
-        between_ss = total_ss - within_ss
-
-        score = ((between_ss / (n_classes - 1)) / (within_ss /
-                                                   (n_samples - n_classes)))
-
-        return score
+        pass

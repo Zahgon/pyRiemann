@@ -146,7 +146,7 @@ class TLCenter(TransformerMixin, BaseEstimator):
     References
     ----------
     .. [1] `Transfer Learning: A Riemannian Geometry Framework With
-        Applications to Brain–Computer Interfaces
+        Applications to Brainâ€“Computer Interfaces
         <https://hal.archives-ouvertes.fr/hal-01923278/>`_
         P Zanini et al, IEEE Transactions on Biomedical Engineering, vol. 65,
         no. 5, pp. 1107-1116, August, 2017
@@ -598,7 +598,7 @@ class TLRotate(TransformerMixin, BaseEstimator):
     .. [3] `Tangent space alignment: Transfer learning for brain-computer
         interface
         <https://www.frontiersin.org/articles/10.3389/fnhum.2022.1049985/pdf>`_
-        A. Bleuzé, J. Mattout and M. Congedo, Frontiers in Human Neuroscience,
+        A. BleuzÃ©, J. Mattout and M. Congedo, Frontiers in Human Neuroscience,
         2022
     """
 
@@ -1046,9 +1046,7 @@ class TLClassifier(TLEstimator):
         score : float
             Mean accuracy of self.predict(X) wrt. y.
         """
-        _, y_true, _ = decode_domains(X, y_enc)
-        y_pred = self.predict(X)
-        return accuracy_score(y_true, y_pred)
+        pass
 
 
 class TLRegressor(TLEstimator):
@@ -1114,9 +1112,7 @@ class TLRegressor(TLEstimator):
         score : float
             R2 of self.predict(X) wrt. y.
         """
-        _, y_true, _ = decode_domains(X, y_enc)
-        y_pred = self.predict(X)
-        return r2_score(y_true.astype(float), y_pred)
+        pass
 
 
 ###############################################################################
@@ -1289,5 +1285,4 @@ class MDWM(MDM):
         score : float
             Mean accuracy of clf.predict(X) wrt. y_enc.
         """
-        _, y_true, _ = decode_domains(X, y_enc)
-        return super().score(X, y_true, sample_weight=sample_weight)
+        pass

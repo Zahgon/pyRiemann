@@ -22,13 +22,4 @@ def get_data_path(dataset_name=None):
     path : str
         Absolute path to the dataset directory.
     """
-    base = os.environ.get("PYRIEMANN_DATA_PATH")
-    if base is None:
-        base = Path.home() / "pyriemann_data"
-    else:
-        base = Path(base)
-    base = base.resolve()
-
-    if dataset_name is not None:
-        return str(base / dataset_name)
-    return str(base)
+    pass
